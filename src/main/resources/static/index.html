@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SMART CAMPUS NETWORK MONITORING SYSTEM</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            background: #0d1117;
+            color: white;
+            font-family: Arial;
+            text-align: center;
+        }
+
+        #wifiContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .card {
+            background: #161b22;
+            padding: 15px;
+            margin: 10px;
+            border-radius: 12px;
+            width: 320px;
+        }
+
+        canvas {
+            height: 200px !important;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>SMART CAMPUS NETWORK MONITORING SYSTEM</h1>
+<div id="wifiContainer"></div>
+<div id="notificationContainer" style="
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+"></div>
+<script>
+    let charts = {};
+    let alertState = {};
+    let abnormalCount = {};
+    let cooldown = {};
+    let previousNetworks = new Set();
+
+    function showNotification(message, color, duration) {
+        const container = document.getElementById("notificationContainer");
+
+        const box = document.createElement("div");
+        box.style.background = color;
+        box.style.color = "white";
+        box.style.padding = "10px 15px";
+        box.style.marginTop = "10px";
+        box.style.borderRadius = "8px";
+        box.style.boxShadow = "0 0 10px rgba(0,0,0,0.5)";
+        box.style.fontWeight = "bold";
+
+        box.innerText = message;
+        container.appendChild(box);
+
+        setTimeout(() => box.remove(), duration);
+    }
+
+    async function loadWifi() {
+        const res = await fetch('/api/network/wifi');
+        const data = await res.json();
+
+        const currentNetworks = new Set(data.map(net => net.ssid));
+
+        // ❌ disconnected networks
+        if (previousNetworks.size > 0) {
+            previousNetworks.forEach(oldNet => {
+                if (!currentNetworks.has(oldNet)) {
+                    showNotification("❌ " + oldNet + " Disconnected", "gray", 4000);
+
+                    const card = document.getElementById(oldNet);
+                    const latencyText = document.getElementById(`latency-${oldNet}`);
+                    const statusText = document.getElementById(`status-${oldNet}`);
+
+                    if (card) card.style.border = "3px solid gray";
+                    if (latencyText) latencyText.innerText = "⏱️ Latency: Stopped";
+
+                    // ✅ show disconnected in card
+                    if (statusText) {
+                        statusText.innerHTML = "⚫ DISCONNECTED";
+                        statusText.style.color = "gray";
+                    }
+                }
+            });
+
+            // ✅ connected notification
+            currentNetworks.forEach(net => {
+                if (!previousNetworks.has(net)) {
+                    showNotification("✅ " + net + " Connected", "green", 3000);
+                }
+            });
+        }
+
+        previousNetworks = currentNetworks;
+
+        data.forEach(net => {
+            const now = Date.now();
+            const COOLDOWN_TIME = 10000;
+            const id = net.ssid;
+
+            if (abnormalCount[id] === undefined) {
+                abnormalCount[id] = net.status === "ABNORMAL" ? 3 : 0;
+            }
+
+            if (!alertState[id]) alertState[id] = "NORMAL";
+
+            // ✅ stable debounce logic
+            if (net.latency > 200 || net.signal < 30) {
+                abnormalCount[id]++;
+            } else {
+                abnormalCount[id]--;
+            }
+
+            abnormalCount[id] = Math.max(0, Math.min(3, abnormalCount[id]));
+
+            if (abnormalCount[id] >= 3) {
+                net.status = "ABNORMAL";
+            } else if (abnormalCount[id] <= 1) {
+                net.status = "NORMAL";
+            }
+
+            // 🚨 alert
+            if (net.status === "ABNORMAL" && alertState[id] === "NORMAL") {
+                if (!cooldown[id] || now - cooldown[id] > COOLDOWN_TIME) {
+                    showNotification("🚨 ABNORMAL " + id, "red", 4000);
+                    alertState[id] = "ALERTED";
+                    cooldown[id] = now;
+                }
+            }
+
+            if (net.status === "NORMAL") {
+                alertState[id] = "NORMAL";
+            }
+
+            // 🧱 create card
+            if (!document.getElementById(id)) {
+                let card = document.createElement("div");
+                card.className = "card";
+                card.id = id;
+                card.style.transition = "0.3s";
+                card.style.border =
+                    net.status === "ABNORMAL"
+                        ? "3px solid red"
+                        : "3px solid lime";
+
+                card.innerHTML = `
+                    <h3>${net.isHotspot ? "📱 " : "📶 "}${net.ssid}</h3>
+                    <p id="signal-${id}">📶 Signal: ${net.signal}%</p>
+                    <p id="latency-${id}">⏱️ Latency: ${net.latency} ms</p>
+                    <p>📡 Channel: ${net.channel}</p>
+                    <p>⚠️ ${net.anomaly}</p>
+                    <p id="status-${id}" style="font-weight:bold; color:${net.status === 'NORMAL' ? 'lime' : 'red'}">
+                        ${net.status === "NORMAL" ? "🟢 NORMAL" : "🔴 ABNORMAL"}
+                    </p>
+                    <canvas id="chart-${id}"></canvas>
+                `;
+
+                document.getElementById("wifiContainer").appendChild(card);
+
+                let ctx = document.getElementById(`chart-${id}`).getContext("2d");
+
+                charts[id] = new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: "Signal %",
+                                data: [],
+                                borderColor: "cyan"
+                            },
+                            {
+                                label: "Latency (ms)",
+                                data: [],
+                                borderColor: "red"
+                            }
+                        ]
+                    }
+                });
+            }
+
+            // ✅ live restore after reconnect
+            const signalText = document.getElementById(`signal-${id}`);
+            const latencyText = document.getElementById(`latency-${id}`);
+            const statusText = document.getElementById(`status-${id}`);
+            const card = document.getElementById(id);
+
+            if (signalText) signalText.innerText = `📶 Signal: ${net.signal}%`;
+            if (latencyText) latencyText.innerText = `⏱️ Latency: ${net.latency} ms`;
+
+            if (statusText) {
+                statusText.innerHTML =
+                    net.status === "NORMAL"
+                        ? "🟢 NORMAL"
+                        : "🔴 ABNORMAL";
+
+                statusText.style.color =
+                    net.status === "NORMAL" ? "lime" : "red";
+            }
+
+            if (card) {
+                card.style.border =
+                    net.status === "ABNORMAL"
+                        ? "3px solid red"
+                        : "3px solid lime";
+            }
+
+            // 📊 chart update
+            let chart = charts[id];
+            if (!chart) return;
+
+            chart.data.labels.push(new Date().toLocaleTimeString());
+            chart.data.datasets[0].data.push(net.signal);
+            chart.data.datasets[1].data.push(net.latency);
+
+            if (chart.data.labels.length > 15) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+                chart.data.datasets[1].data.shift();
+            }
+
+            chart.update();
+        });
+    }
+
+    setInterval(loadWifi, 3000);
+    loadWifi();
+</script>
+
+</body>
+</html>
