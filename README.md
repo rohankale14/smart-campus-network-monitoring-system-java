@@ -1,47 +1,77 @@
-# smart-campus-network-monitoring-system-java
-# 🚀 SMART CAMPUS NETWORK MONITORING SYSTEM
+# 🚀 Smart Campus Network Monitoring System
 
-A Real-Time Smart Campus Network Monitoring System developed using **Java Spring Boot, Python, HTML, CSS, JavaScript, and Chart.js**.
+A real-time **Wi-Fi network monitoring system** developed using **Java Spring Boot, Python, HTML, CSS, JavaScript, and Chart.js**.
 
-This project monitors nearby WiFi networks, detects abnormal network conditions, analyzes signal strength, measures latency, and displays live graphical statistics through an interactive dashboard.
-
----
-
-# 📌 Features
-
-✅ Real-Time WiFi Monitoring  
-✅ Live Signal Strength Analysis  
-✅ Network Latency Detection  
-✅ Abnormal Network Detection  
-✅ Dynamic Dashboard Visualization  
-✅ Real-Time Alert Notifications  
-✅ Connected / Disconnected Detection  
-✅ Mobile Hotspot Identification  
-✅ Live Chart Updates using Chart.js  
+The system scans nearby Wi-Fi networks, monitors signal strength and latency, detects abnormal network conditions using predefined thresholds, and displays the results through an interactive dashboard.
 
 ---
 
-# 🛠️ Technologies Used
+## 📌 Features
 
-## 💻 Backend
-- Java
-- Spring Boot
-- REST API
-
-## 🎨 Frontend
-- HTML
-- CSS
-- JavaScript
-- Chart.js
-
-## 🐍 Python Integration
-- Python
-- subprocess
-- netsh wlan command
+* 📡 Real-time Wi-Fi network scanning
+* 📶 Signal strength monitoring
+* ⏱️ Network latency monitoring
+* 🚨 Abnormal network detection
+* 📱 Mobile hotspot identification
+* 📊 Live charts and statistics
+* 🔔 Real-time network alerts
+* 🌐 REST API-based backend
 
 ---
 
-# 📂 Project Structure
+## 🛠️ Tech Stack
+
+**Backend**
+
+* Java
+* Spring Boot
+* REST API
+* ProcessBuilder
+
+**Frontend**
+
+* HTML
+* CSS
+* JavaScript
+* Chart.js
+
+**Network Monitoring**
+
+* Python 3
+* Windows `netsh wlan` commands
+
+---
+
+## ⚙️ How It Works
+
+```text
+Wi-Fi Networks
+      ↓
+   wifi.py
+      ↓
+Windows netsh wlan
+      ↓
+Spring Boot + ProcessBuilder
+      ↓
+Threshold Analysis
+      ↓
+REST API
+      ↓
+Web Dashboard
+```
+
+The system evaluates network conditions using predefined thresholds:
+
+| Metric          | Normal   | Abnormal |
+| --------------- | -------- | -------- |
+| Signal Strength | ≥ 50%    | < 50%    |
+| Latency         | ≤ 100 ms | > 100 ms |
+
+If either signal strength or latency exceeds the defined threshold, the network is marked as **ABNORMAL** and an alert is displayed.
+
+---
+
+## 📂 Project Structure
 
 ```text
 SMART-CAMPUS-NETWORK-MONITORING-SYSTEM/
@@ -61,97 +91,36 @@ SMART-CAMPUS-NETWORK-MONITORING-SYSTEM/
 │
 ├── wifi.py
 ├── pom.xml
-├── README.md
-└── screenshots/
+└── README.md
 ```
 
 ---
 
-# ⚙️ How The System Works
+## ▶️ Getting Started
 
-### 1️⃣ WiFi Network Scanning
-The Python script scans nearby WiFi networks using:
-
-```python
-netsh wlan show networks mode=bssid
-```
-
----
-
-### 2️⃣ Network Analysis
-The system analyzes:
-- Signal Strength
-- Network Latency
-- Channel Information
-- Abnormal Conditions
-
----
-
-### 3️⃣ Backend Processing
-Spring Boot executes the Python script using:
-
-```java
-ProcessBuilder
-```
-
----
-
-### 4️⃣ Real-Time Dashboard
-Frontend fetches live network data from:
-
-```text
-/api/network/wifi
-```
-
-and displays:
-- Live Signal Graphs
-- Latency Charts
-- Alert Notifications
-- Network Status
-
----
-
-# 📊 Dashboard Functionalities
-
-🟢 NORMAL Network Status  
-🔴 ABNORMAL Network Detection  
-📡 Live Signal Monitoring  
-⏱️ Real-Time Latency Tracking  
-🚨 Alert Notifications  
-📈 Dynamic Graph Updates  
-
----
-
-# ▶️ How To Run The Project
-
-## Step 1️⃣ Clone Repository
+### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/SMART-CAMPUS-NETWORK-MONITORING-SYSTEM.git
+git clone https://github.com/rohankale14/SMART-CAMPUS-NETWORK-MONITORING-SYSTEM.git
+cd SMART-CAMPUS-NETWORK-MONITORING-SYSTEM
 ```
 
----
-
-## Step 2️⃣ Open Project
-
-Open the project in:
-- IntelliJ IDEA
-- Eclipse
-- VS Code
-
----
-
-## Step 3️⃣ Install Python
-
-Verify Python installation:
+### 2. Check Java and Python
 
 ```bash
+java -version
 python --version
 ```
 
----
+### 3. Verify Wi-Fi Scanning
 
-## Step 4️⃣ Run Spring Boot Application
+This project uses the Windows `netsh` command:
+
+```bash
+netsh wlan show networks mode=bssid
+```
+
+### 4. Run the Spring Boot Application
 
 Run:
 
@@ -159,9 +128,13 @@ Run:
 NetworkMonitorApplication.java
 ```
 
----
+or:
 
-## Step 5️⃣ Open Browser
+```bash
+mvn spring-boot:run
+```
+
+### 5. Open the Dashboard
 
 ```text
 http://localhost:8080
@@ -169,57 +142,63 @@ http://localhost:8080
 
 ---
 
-# 🚀 Future Enhancements
+## 🔌 API
 
-- AI-Based Network Prediction
-- Email Alert System
-- Database Integration
-- User Authentication
-- Cloud Monitoring
-- Mobile Application Support
-- Advanced Analytics Dashboard
+### Get Wi-Fi Network Data
 
----
-
-# 📷 Project Screenshots
-
-Add screenshots inside:
-
-```text
-screenshots/
+```http
+GET /api/network/wifi
 ```
 
-Example Screenshots:
-- Dashboard UI
-- Live Graphs
-- Alert Notifications
-- Network Status
+---
+
+## 📊 Dashboard
+
+The dashboard provides:
+
+* Current network status
+* Signal strength
+* Latency
+* Network alerts
+* Live graphical statistics
+* Detected Wi-Fi networks
+
+Add screenshots to your repository and display them here:
+
+```markdown
+![Dashboard](screenshots/dashboard.png)
+```
 
 ---
 
-# 🎯 Learning Outcomes
+## 🔮 Future Enhancements
 
-Through this project, I learned:
-
-- Java Spring Boot Integration
-- Python & Java Communication
-- REST API Development
-- Real-Time Data Visualization
-- Network Monitoring Concepts
-- Frontend Dashboard Design
-- ProcessBuilder Integration
+* 🤖 AI/ML-based network prediction
+* 🗄️ Historical network data using MySQL/PostgreSQL/InfluxDB
+* 📧 Automated email/Telegram alerts
+* 🔐 Spring Security + JWT authentication
+* 🐳 Docker and cloud deployment
+* 🗺️ Wi-Fi signal heatmap
 
 ---
 
-# 👨‍💻 Author
+## 🎯 Learning Outcomes
 
-## Rohan Kale
-
-🔗 GitHub: https://github.com/yourusername  
-🔗 LinkedIn: https://linkedin.com/in/yourlinkedin  
+* Spring Boot & REST API development
+* Python-Java integration using `ProcessBuilder`
+* Wi-Fi/network monitoring
+* Real-time data visualization
+* Threshold-based anomaly detection
+* Frontend-backend integration
 
 ---
 
-# ⭐ Conclusion
+## 👨‍💻 Author
 
-The Smart Campus Network Monitoring System provides real-time monitoring and analysis of campus WiFi networks. The system helps identify abnormal conditions quickly and improves overall network visibility using live graphical dashboards and alert systems.
+**Rohan Kale**
+
+🔗 GitHub: https://github.com/rohankale14
+
+---
+
+⭐ If you find this project useful, consider giving it a star!
