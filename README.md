@@ -1,4 +1,4 @@
-# 🚀 Smart Campus Network Monitoring System
+# 🚀 Smart Campus Network Monitoring System (Final Year Project)
 
 A real-time **Wi-Fi network monitoring system** developed using **Java Spring Boot, Python, HTML, CSS, JavaScript, and Chart.js**.
 
